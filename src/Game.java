@@ -8,24 +8,28 @@ public class Game extends Canvas implements Runnable{
 
     private static final long serialVersionUID = 1550691097823471818L;
 
-    public static final int WIDTH = 640, HEIGHT = WIDTH / 12 * 9;
+    public static final int WIDTH = 33 * 16, HEIGHT = 33 * 9;
     private Thread thread;
     private boolean running = false;
 
     public SpriteSheet ss = new SpriteSheet();
     public Object person = new Object(3, 3, 1, ss.grabImage(0, 0));
+    public Object[] grass = new Object[16 * 9];
 
     public static void main(String args[]){
         new Game();
     }
 
     public Game(){
+        for(int i = 0; i < 16; i++) {
+            for(int j = 0; j < 9; j++){
+                grass[i+16*j] = new Object(i, j, 1, ss.grabImage(0, 0));
+            }
+        }
         new Window(WIDTH, HEIGHT, "Yay!", this);
     }
 
     public synchronized void start(){
-
-
         thread = new Thread(this);
         thread.start();
         running = true;
@@ -76,7 +80,9 @@ public class Game extends Canvas implements Runnable{
 
         g.setColor(Color.black);
         g.fillRect(0,0,WIDTH,HEIGHT);
-
+        for (Object o : grass) {
+            g.drawImage(o.GetImage(), o.GetX()*32, o.GetY()*32, this);
+        }
         g.drawImage(person.GetImage(), person.GetX()*32, person.GetY()*32, this);
 
         g.dispose();
