@@ -77,7 +77,7 @@ public class Game extends Canvas implements Runnable{
         g.setColor(Color.black);
         g.fillRect(0,0,WIDTH,HEIGHT);
 
-        g.drawImage(person.GetImage(), 0, 0, this);
+        g.drawImage(person.GetImage(), person.GetX()*32, person.GetY()*32, this);
 
         g.dispose();
         bs.show();
