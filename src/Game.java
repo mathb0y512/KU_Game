@@ -12,6 +12,9 @@ public class Game extends Canvas implements Runnable{
     private Thread thread;
     private boolean running = false;
 
+    public SpriteSheet ss = new SpriteSheet();
+    public Object person = new Object(3, 3, 1, ss.grabImage(0, 0));
+
     public static void main(String args[]){
         new Game();
     }
@@ -21,6 +24,8 @@ public class Game extends Canvas implements Runnable{
     }
 
     public synchronized void start(){
+
+
         thread = new Thread(this);
         thread.start();
         running = true;
@@ -71,6 +76,8 @@ public class Game extends Canvas implements Runnable{
 
         g.setColor(Color.black);
         g.fillRect(0,0,WIDTH,HEIGHT);
+
+        g.drawImage(person.GetImage(), 0, 0, this);
 
         g.dispose();
         bs.show();
