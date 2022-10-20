@@ -3,6 +3,15 @@ import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.image.BufferStrategy;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.awt.image.DataBufferByte;
+import javax.imageio.ImageIO;
+import java.io.File;
 
 public class Game extends Canvas implements Runnable{
 
@@ -13,26 +22,55 @@ public class Game extends Canvas implements Runnable{
     private boolean running = false;
 
     public SpriteSheet ss = new SpriteSheet();
-    public Object person = new Object(3, 3, 1, ss.grabImage(0, 0));
-    public Object[] grass = new Object[16 * 9];
+    public Object person;
+    public Object[][] background;
+    public ArrayList<Object> foreground;
+
+    BufferedImage Level;
+
+    public String levelname;
+    public String[] levellist;
+
+    int levelcursor;
+
+    public SpriteSheet GetSpriteSheet() {
+        return ss;
+    }
+
+    public Object[][] GetBackground() {
+        return background;
+    }
+
+    public ArrayList<Object> GetForeground() {
+        return foreground;
+    }
+
+    public Object GetForegroundPosition(int[] position) {
+        for(Object o : foreground) {
+            if(Arrays.equals(o.getPosition(0), position)) {
+                return o;
+            }
+        }
+        return null;
+    }
 
     public static void main(String args[]){
         new Game();
     }
 
-    public Game(){
-        for(int i = 0; i < 16; i++) {
-            for(int j = 0; j < 9; j++){
-                grass[i+16*j] = new Object(i, j, 1, ss.grabImage(0, 0));
-            }
-        }
-        new Window(WIDTH, HEIGHT, "Yay!", this);
+    public Game() {
+        this.addKeyListener(new KeyInput(this));
+
+        startmenu();
+        
+        new Window(WIDTH, HEIGHT, "Blocker", this);
     }
 
     public synchronized void start(){
         thread = new Thread(this);
         thread.start();
         running = true;
+        this.setFocusable(true);
     }
 
     public synchronized void stop(){
@@ -54,8 +92,8 @@ public class Game extends Canvas implements Runnable{
     
         while (running) {
             now = System.nanoTime();
-    
-            tick();
+            this.requestFocus();
+
             render();
     
             updateTime = System.nanoTime() - now;
@@ -69,6 +107,11 @@ public class Game extends Canvas implements Runnable{
         }
     }
 
+    public void move(int dir) {
+        System.out.println(dir);
+        person.move(dir);
+    }
+
     private void render() {
         BufferStrategy bs = this.getBufferStrategy();
         if(bs == null){
@@ -80,16 +123,114 @@ public class Game extends Canvas implements Runnable{
 
         g.setColor(Color.black);
         g.fillRect(0,0,WIDTH,HEIGHT);
-        for (Object o : grass) {
-            g.drawImage(o.GetImage(), o.GetX()*32, o.GetY()*32, this);
+
+        if(levelname == "menu") {
+            g.setColor(Color.white);
+            g.setFont(g.getFont().deriveFont(20f));
+            g.drawString("Blocker!", 5, 20);
+            g.setFont(g.getFont().deriveFont(15f));
+            for(int i = 0; i < levellist.length; i++) {
+                String beginning = (levelcursor == i) ? "> " : "";
+                g.drawString(beginning + levellist[i], 5, 40 + 15 * i);
+            }
+        } else {
+            for(Object[] ooo : background){
+                for (Object o : ooo) {
+                    g.drawImage(o.GetImage(), o.GetX()*32, o.GetY()*32, this);
+                }
+            }
+            for (Object o : foreground){
+                g.drawImage(o.GetImage(), o.GetX()*32, o.GetY()*32, this);
+            }
         }
-        g.drawImage(person.GetImage(), person.GetX()*32, person.GetY()*32, this);
 
         g.dispose();
         bs.show();
     }
 
-    private void tick() {
+    public void startmenu() {
+        levelcursor = 0;
+        levelname = "menu";
+        File directoryPath = new File("src/res/Level_Pack/");
+        //List of all files and directories
+        levellist = directoryPath.list();
+    }
 
+    public void startlevel() {
+        //load level
+        try {
+            Level = ImageIO.read(new FileInputStream("src/res/Level_Pack/" + levellist[levelcursor]));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+        //convert image to pixels
+        final byte[] pixels = ((DataBufferByte) Level.getRaster().getDataBuffer()).getData();
+        final int width = Level.getWidth();
+        final int height = Level.getHeight();
+        int[][][] result = new int[height][width][3];
+        final boolean hasAlphaChannel = Level.getAlphaRaster() != null;
+        int start = (hasAlphaChannel) ? 1 : 0;
+        int pixelLength = (hasAlphaChannel) ? 4 : 3;
+            
+        for (int pixel = start, row = 0, col = 0; pixel + 2 < pixels.length; pixel += pixelLength) {
+            result[row][col][2] += ((int) pixels[pixel] & 0xff); // blue
+            result[row][col][1] += ((int) pixels[pixel + 1] & 0xff); // green
+            result[row][col][0] += ((int) pixels[pixel + 2] & 0xff); // red
+            col++;
+            if (col == width) {
+               col = 0;
+               row++;
+            }
+        }
+
+        System.out.println(result[3][5][0] + "," + result[3][5][1] + "," + result[3][5][2]);
+
+        //initializing level layout
+        this.foreground = new ArrayList<Object>();
+        this.background = new Object[16][9];
+
+        //convert pixels to objects
+        for(int i = 0; i < 16; i++) {
+            for(int j = 0; j < 9; j++){
+                if(Arrays.equals(result[j][i], new int[] {34, 177, 76})) { //colors -> objects
+                    background[i][j] = new Grass(i, j, this);
+                } else if(Arrays.equals(result[j][i], new int[] {0, 162, 232})) {
+                    background[i][j] = new Puddle(i, j, this);
+                } else if(Arrays.equals(result[j][i], new int[] {63, 72, 204})){
+                    background[i][j] = new Portal(i, j, this);
+                } else {
+                    background[i][j] = new RockPuddle(i, j, this);
+                }
+            }
+        }
+        for(int i = 0; i < 16; i++) {
+            for(int j = 0; j < 9; j++){
+                //System.out.println(result[j+9][i][0] + ", " + result[j+9][i][1] + ", " + result[j+9][i][2]);
+                Object object = null;
+                if(Arrays.equals(result[j+9][i], new int[] {255, 255, 255})) { //colors -> objects
+                    continue;
+                }
+                if(Arrays.equals(result[j+9][i], new int[] {185, 122, 87})) {
+                    object = new Crate(i, j, this);
+                } else if(Arrays.equals(result[j+9][i], new int[] {127, 127, 127})){
+                    person = new Player(i, j, this);
+                    foreground.add(person);
+                } else if(Arrays.equals(result[j+9][i], new int[] {181, 230, 29})){
+                    object = new Bush(i, j, this);
+                } else if(Arrays.equals(result[j+9][i], new int[] {255, 0, 0})){
+                    object = new Flower(i, j, this);
+                } else if(Arrays.equals(result[j+9][i], new int[] {0, 0, 0})){
+                    object = new Rock(i, j, this);
+                }
+                if(object != null) {
+                    foreground.add(object);
+                }
+            }
+        }
+        levelname = levellist[levelcursor];
     }
 }

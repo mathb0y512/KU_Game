@@ -3,7 +3,6 @@ import java.io.IOException;
 import java.io.FileInputStream;
 import javax.imageio.ImageIO;
 import java.awt.Graphics2D;
-import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
 
 public class SpriteSheet {
