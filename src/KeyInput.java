@@ -17,19 +17,19 @@ public class KeyInput implements KeyListener{
 
     @Override
     public void keyReleased(KeyEvent e) {
-        if(game.levelname == "menu") {
+        if(game.levelName == "menu") {
             switch(e.getKeyChar()) {
                 case 'w':
-                    game.levelcursor -= 1;
+                    game.levelCursor -= 1;
                     return;
                 case 's':
-                    game.levelcursor += 1;
+                    game.levelCursor += 1;
                     return;
                 case ' ':
-                    game.startlevel();
+                    game.startLevel();
                     return;
             }
-            game.levelcursor = Math.max(0, Math.min(game.levellist.length-1, game.levelcursor));
+            game.levelCursor = Math.max(0, Math.min(game.levelList.length-1, game.levelCursor));
         } else {
             switch(e.getKeyChar()) {
                 case 'w':
@@ -45,10 +45,10 @@ public class KeyInput implements KeyListener{
                     game.move(4);
                     break;
                 case 'm':
-                    game.startmenu();
+                    game.startMenu();
                     break;
                 case 'r':
-                    game.startlevel();
+                    game.startLevel();
                     break;
             }
         }
