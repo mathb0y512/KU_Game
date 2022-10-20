@@ -8,9 +8,9 @@ public class Flower extends Object {
     
     public boolean move(int dir) {
         ArrayList<Object> foreground = game.GetForeground();
-        foreground.remove(game.person);
-        game.person = new FirePlayer(GetX(), GetY(), game);
-        foreground.add(game.person);
+        foreground.remove(game.Player);
+        game.Player = new FirePlayer(GetX(), GetY(), game);
+        foreground.add(game.Player);
         game.GetForeground().remove(this);
         return true;
     }
