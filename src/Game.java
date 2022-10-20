@@ -132,7 +132,7 @@ public class Game extends Canvas implements Runnable{
             g.setFont(g.getFont().deriveFont(15f));
             for(int i = 0; i < levelList.length; i++) {
                 String beginning = (levelCursor == i) ? "> " : "";
-                g.drawString(beginning + levelList[i], 5, 40 + 15 * i);
+                g.drawString(beginning + levelList[i].replace(".png", ""), 5, 40 + 15 * i);
             }
         } else {
             for(Object[] ooo : background){
