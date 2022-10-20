@@ -8,7 +8,7 @@ public class FirePlayer extends Object {
     public boolean move(int dir) {
         int[] Towards = getPosition(dir);
         if(game.GetBackground()[Towards[0]][Towards[1]].sprite == "Portal") {
-            game.startmenu();
+            game.startMenu();
             return true;
         }
         if(game.GetBackground()[Towards[0]][Towards[1]].sprite == "Puddle") {
