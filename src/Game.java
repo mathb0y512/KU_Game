@@ -16,22 +16,22 @@ import java.io.File;
 public class Game extends Canvas implements Runnable{
 
     private static final long serialVersionUID = 1550691097823471818L;
-
+    //Window size
     public static final int WIDTH = 33 * 16, HEIGHT = 33 * 9;
     private Thread thread;
     private boolean running = false;
 
     public SpriteSheet ss = new SpriteSheet();
-    public Object person;
+    public Object Player;
     public Object[][] background;
     public ArrayList<Object> foreground;
 
     BufferedImage Level;
 
-    public String levelname;
-    public String[] levellist;
+    public String levelName;
+    public String[] levelList;
 
-    int levelcursor;
+    int levelCursor;
 
     public SpriteSheet GetSpriteSheet() {
         return ss;
@@ -44,7 +44,7 @@ public class Game extends Canvas implements Runnable{
     public ArrayList<Object> GetForeground() {
         return foreground;
     }
-
+    // returns the object's position on the grid
     public Object GetForegroundPosition(int[] position) {
         for(Object o : foreground) {
             if(Arrays.equals(o.getPosition(0), position)) {
@@ -53,16 +53,17 @@ public class Game extends Canvas implements Runnable{
         }
         return null;
     }
-
+    //Runs the game
     public static void main(String args[]){
         new Game();
     }
 
     public Game() {
+        // adds keyListener for checking user keyboard input
         this.addKeyListener(new KeyInput(this));
-
-        startmenu();
-        
+        // opens the start menu for level select
+        startMenu();
+        // Window title
         new Window(WIDTH, HEIGHT, "Blocker", this);
     }
 
@@ -102,14 +103,14 @@ public class Game extends Canvas implements Runnable{
             try {
                 Thread.sleep(wait);
             } catch (Exception e) {
-                e.printStackTrace();
+                //e.printStackTrace();
             }
         }
     }
 
     public void move(int dir) {
-        System.out.println(dir);
-        person.move(dir);
+        //System.out.println(dir);
+        Player.move(dir);
     }
 
     private void render() {
@@ -124,14 +125,14 @@ public class Game extends Canvas implements Runnable{
         g.setColor(Color.black);
         g.fillRect(0,0,WIDTH,HEIGHT);
 
-        if(levelname == "menu") {
+        if(levelName == "menu") {
             g.setColor(Color.white);
             g.setFont(g.getFont().deriveFont(20f));
             g.drawString("Blocker!", 5, 20);
             g.setFont(g.getFont().deriveFont(15f));
-            for(int i = 0; i < levellist.length; i++) {
-                String beginning = (levelcursor == i) ? "> " : "";
-                g.drawString(beginning + levellist[i], 5, 40 + 15 * i);
+            for(int i = 0; i < levelList.length; i++) {
+                String beginning = (levelCursor == i) ? "> " : "";
+                g.drawString(beginning + levelList[i], 5, 40 + 15 * i);
             }
         } else {
             for(Object[] ooo : background){
@@ -148,18 +149,33 @@ public class Game extends Canvas implements Runnable{
         bs.show();
     }
 
-    public void startmenu() {
-        levelcursor = 0;
-        levelname = "menu";
+    public void startMenu() {
+        levelCursor = 0;
+        levelName = "menu";
         File directoryPath = new File("src/res/Level_Pack/");
         //List of all files and directories
-        levellist = directoryPath.list();
+        levelList = directoryPath.list();
+        String[] sortList = new String[levelList.length];
+        for(int i = 0; i < levelList.length; i++)
+        {
+            int least = i;
+            for(int j = i + 1; j < levelList.length; j++)
+            {
+                if(levelList[j].compareTo(levelList[i]) < 0)
+                    least = j;
+            }
+            //put the new minimum in the i-th position.
+            String aux = levelList[i];
+            levelList[i] = levelList[least];
+            levelList[least] = aux;
+        }
+
     }
 
-    public void startlevel() {
+    public void startLevel() {
         //load level
         try {
-            Level = ImageIO.read(new FileInputStream("src/res/Level_Pack/" + levellist[levelcursor]));
+            Level = ImageIO.read(new FileInputStream("src/res/Level_Pack/" + levelList[levelCursor]));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -187,7 +203,7 @@ public class Game extends Canvas implements Runnable{
             }
         }
 
-        System.out.println(result[3][5][0] + "," + result[3][5][1] + "," + result[3][5][2]);
+        //System.out.println(result[3][5][0] + "," + result[3][5][1] + "," + result[3][5][2]);
 
         //initializing level layout
         this.foreground = new ArrayList<Object>();
@@ -217,8 +233,8 @@ public class Game extends Canvas implements Runnable{
                 if(Arrays.equals(result[j+9][i], new int[] {185, 122, 87})) {
                     object = new Crate(i, j, this);
                 } else if(Arrays.equals(result[j+9][i], new int[] {127, 127, 127})){
-                    person = new Player(i, j, this);
-                    foreground.add(person);
+                    Player = new Player(i, j, this);
+                    foreground.add(Player);
                 } else if(Arrays.equals(result[j+9][i], new int[] {181, 230, 29})){
                     object = new Bush(i, j, this);
                 } else if(Arrays.equals(result[j+9][i], new int[] {255, 0, 0})){
@@ -231,6 +247,6 @@ public class Game extends Canvas implements Runnable{
                 }
             }
         }
-        levelname = levellist[levelcursor];
+        levelName = levelList[levelCursor];
     }
 }
